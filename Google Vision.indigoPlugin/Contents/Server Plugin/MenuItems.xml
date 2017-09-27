@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<MenuItems>
+
+	<MenuItem id="menuEVENTS">
+	<Name>Setup Events</Name>
+	<ConfigUI>
+		<Field  id="selectEvent" type="menu" defaultValue="1" tooltip="Enter Event number, click on ::Event n:: to refresh" default="0"> <Label> Event #: </Label>
+				<List>
+					<Option value="1" >Event 1</Option>
+					<Option value="2" >Event 2</Option>
+					<Option value="3" >Event 3</Option>
+					<Option value="4" >Event 4</Option>
+					<Option value="5" >Event 5</Option>
+					<Option value="6" >Event 6</Option>
+					<Option value="7" >Event 7</Option>
+					<Option value="8" >Event 8</Option>
+					<Option value="9" >Event 9</Option>
+					<Option value="10" >Event10</Option>
+					<Option value="11" >Event11</Option>
+					<Option value="12" >Event12</Option>
+				</List>
+				<CallbackMethod>eventConfigCallback</CallbackMethod>
+		</Field>
+
+
+		<Field  id="eventType" type="menu" defaultValue="OCR">
+				<List>
+					<Option value="OCR">OCR</Option>
+					<Option value="Face">Face Detection</Option>
+					<Option value="Label">Label (Object Detection)</Option>
+				</List>
+			<Label>Event Type:</Label>
+		</Field>
+
+		<Field id="txtOCR" visibleBindingId="eventType" visibleBindingValue="OCR"
+				type="textfield">
+			<Label>OCR Text you are looking for (will be used in a CONTAINS clause, case insensitive):</Label>
+		</Field>
+
+		<Field id="txtLabel" visibleBindingId="eventType" visibleBindingValue="Label"
+				type="textfield">
+			<Label>Label Description Contains (separate multiple labels by comma which will be used in a OR condition for the event):</Label>
+		</Field>
+
+		<Field id="txtNotLabel" visibleBindingId="eventType" visibleBindingValue="Label"
+				type="textfield">
+			<Label>Label Description DOES NOT Contain (separate multiple labels by comma which will be used in a OR condition for the event):</Label>
+		</Field>
+
+		<Field id="txtLabelScore" visibleBindingId="eventType" visibleBindingValue="Label"
+				type="textfield">
+			<Label>Minimum Score (between 0 and 1):</Label>
+		</Field>
+
+		<Field id="txtFaceScore" visibleBindingId="eventType" visibleBindingValue="Face"
+				type="textfield">
+			<Label>Minimum Score (between 0 and 1):</Label>
+		</Field>
+
+		<Field  id="enableDisable" type="menu" defaultValue="0">
+				<List>
+					<Option value="1" >ON</Option>
+					<Option value="0" >off</Option>
+				</List>
+			<Label>Enable/Disable this event:</Label>
+		</Field>
+
+
+		<Field id="DeleteEvent" type="checkbox" >
+				<Label>remove Event / clear Data:</Label>
+				<Description></Description>
+		</Field>
+
+		<Field  id="buttonDevices" type="button"	tooltip="This will confirm the devices for this event">
+			<Label>Save Event: </Label><Title>CONFIRM</Title> 	
+			<CallbackMethod>buttonConfirmDevicesCALLBACK</CallbackMethod>
+		</Field>
+		<Field id="infoLabel8" type="label"><Label>---  Dont forget to click on CONFIRM to save EVENT parameters  ---</Label></Field>
+
+
+		</ConfigUI>
+	</MenuItem>
+
+		<Field  id="buttonDevices" type="button"	tooltip="This will confirm the devices for this event">
+			<Label>After selecting the parameters </Label><Title>CONFIRM</Title> 	
+			<CallbackMethod>buttonConfirmDevicesCALLBACK</CallbackMethod>
+		</Field>
+		<Field id="infoLabel8" type="label"><Label>---  Dont forget to click on CONFIRM to save EVENT parameters  ---</Label></Field>
+
+	<MenuItem id="checkForUpdates">
+		<Name>Check for Updates</Name>
+		<CallbackMethod>checkForUpdates</CallbackMethod>
+	</MenuItem>
+	<MenuItem id="updatePlugin">
+		<Name>Update Plugin</Name>
+		<CallbackMethod>updatePlugin</CallbackMethod>
+	</MenuItem>
+</MenuItems>

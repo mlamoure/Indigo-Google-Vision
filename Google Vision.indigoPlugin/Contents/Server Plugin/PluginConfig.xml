@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<SupportURL>https://github.com/mlamoure/</SupportURL>
+
+			<Field id="loginDescription"
+			            type="label">
+			        <Label>You will need a API key to use this plugin.  Sign up for Google Cloud, and create a project and credentials for Google Vision API</Label>
+			</Field>
+
+	    <Field id="txtAPIKey"
+	            type="textfield">
+	        <Label>API Key:</Label>
+	    </Field>
+
+		<Field hidden="false" type="checkbox" id="chkDebug"><Label>Debug (will produce a lot of log data)</Label><Description></Description></Field>
+
+</PluginConfig>

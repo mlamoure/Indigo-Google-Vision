@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<Events>
+    <SupportURL>https://github.com/mlamoure/</SupportURL>
+
+    <Event id="event1">	<Name>Event 1</Name> </Event>
+    <Event id="event2">	<Name>Event 2</Name> </Event>
+    <Event id="event3">	<Name>Event 3</Name> </Event>
+    <Event id="event4">	<Name>Event 4</Name> </Event>
+    <Event id="event5">	<Name>Event 5</Name> </Event>
+    <Event id="event6">	<Name>Event 6</Name> </Event>
+    <Event id="event7">	<Name>Event 7</Name> </Event>
+    <Event id="event8">	<Name>Event 8</Name> </Event>
+    <Event id="event9">	<Name>Event 9</Name> </Event>
+    <Event id="event10">	<Name>Event 10</Name> </Event>
+    <Event id="event11">	<Name>Event 11</Name> </Event>
+    <Event id="event12">	<Name>Event 12</Name> </Event>
+
+</Events>

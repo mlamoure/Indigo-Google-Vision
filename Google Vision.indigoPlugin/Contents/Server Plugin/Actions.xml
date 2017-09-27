@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<Actions>
+	<Action id="sendImage">
+		<Name>Send Image</Name>
+		<CallbackMethod>sendImageToGoogleVisionAction</CallbackMethod>
+		<ConfigUI>
+			<Field id="locationOption" type="menu" defaultValue="static" tooltip="" default="static"> <Label>Where to get the image location:</Label>
+					<List>
+						<Option value="variable">Indigo Variable</Option>
+						<Option value="static">Static local hard drive location</Option>
+					</List>
+			</Field>
+
+			<Field id="locationVariable" type="menu" default="" hidden="False" visibleBindingId="locationOption" visibleBindingValue="variable">
+				<List class="indigo.variables"></List>
+				<Label>pick a variable containing the image location (HTTP or local filesystem with full path)</Label>
+			</Field>
+
+			<Field id="location" type="textfield" defaultValue="" visibleBindingId="locationOption" visibleBindingValue="static">
+				<Label>Image (can be local filesystem or http):</Label>
+			</Field>
+		</ConfigUI>
+
+	</Action>
+</Actions>
