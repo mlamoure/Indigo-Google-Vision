@@ -52,6 +52,11 @@
 			<Label>Minimum Score (between 0 and 1):</Label>
 		</Field>
 
+		<Field id="noFace" type="checkbox" visibleBindingId="eventType" visibleBindingValue="Face">
+				<Label>No face detected (ignores minimum score):</Label>
+				<Description></Description>
+		</Field>
+
 		<Field id="txtFaceScore" visibleBindingId="eventType" visibleBindingValue="Face"
 				type="textfield">
 			<Label>Minimum Score (between 0 and 1):</Label>

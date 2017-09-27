@@ -19,6 +19,22 @@
 			<Field id="location" type="textfield" defaultValue="" visibleBindingId="locationOption" visibleBindingValue="static">
 				<Label>Image (can be local filesystem or http):</Label>
 			</Field>
+
+		<Field id="infoLabel8" type="label"><Label>---  Applicable Events  ---</Label></Field>
+
+		<Field id="event1" type="checkbox" ><Label>Event 1:</Label><Description></Description></Field>
+		<Field id="event2" type="checkbox" ><Label>Event 2:</Label><Description></Description></Field>
+		<Field id="event3" type="checkbox" ><Label>Event 3:</Label><Description></Description></Field>
+		<Field id="event4" type="checkbox" ><Label>Event 4:</Label><Description></Description></Field>
+		<Field id="event5" type="checkbox" ><Label>Event 5:</Label><Description></Description></Field>
+		<Field id="event6" type="checkbox" ><Label>Event 6:</Label><Description></Description></Field>
+		<Field id="event7" type="checkbox" ><Label>Event 7:</Label><Description></Description></Field>
+		<Field id="event8" type="checkbox" ><Label>Event 8:</Label><Description></Description></Field>
+		<Field id="event9" type="checkbox" ><Label>Event 9:</Label><Description></Description></Field>
+		<Field id="event10" type="checkbox" ><Label>Event 10:</Label><Description></Description></Field>
+		<Field id="event11" type="checkbox" ><Label>Event 11:</Label><Description></Description></Field>
+		<Field id="event12" type="checkbox" ><Label>Event 12:</Label><Description></Description></Field>
+
 		</ConfigUI>
 
 	</Action>

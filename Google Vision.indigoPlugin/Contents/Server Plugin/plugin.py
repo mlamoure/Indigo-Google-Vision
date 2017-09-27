@@ -29,6 +29,7 @@ emptyEVENT = {
 	"txtNotLabel": "",
 	"txtLabelScore" : "90", 
 	"txtFaceScore" : "90",
+	"noFace" : "0",
 	"enableDisable" : "0"
 }
 
@@ -99,6 +100,7 @@ class Plugin(indigo.PluginBase):
 		valuesDict["txtNotLabel"] = str(self.EVENTS[self.currentEventN]["txtNotLabel"])
 		valuesDict["txtLabelScore"] = str(self.EVENTS[self.currentEventN]["txtLabelScore"])
 		valuesDict["txtFaceScore"]	= str(self.EVENTS[self.currentEventN]["txtFaceScore"])
+		valuesDict["noFace"] = self.EVENTS[self.currentEventN]["noFace"]
 		valuesDict["enableDisable"] = self.EVENTS[self.currentEventN]["enableDisable"]
 
 		self.updatePrefs =True
@@ -195,18 +197,18 @@ class Plugin(indigo.PluginBase):
 		return response.json()
 
 	def sendImageToGoogleVisionAction(self, pluginAction, dev):
-		indigo.server.log("sending " + pluginAction.props["location"] + " to Google Vision API")
-
 		if pluginAction.props["locationOption"] == "static":
 			image = pluginAction.props["location"]
 		else:
 			image = indigo.variables[int(pluginAction.props["locationVariable"])].value
 
+		indigo.server.log("sending " + image + " to Google Vision API")
 		result = self.sendImageToGoogleForAnnotation(image)
 
 		self.logger.debug(json.dumps(result))
 
 		buildstr = ""
+		facecounter = 0
 
 		if "labelAnnotations" in result["responses"][0]:
 			for lbl in result["responses"][0]["labelAnnotations"]:
@@ -226,7 +228,6 @@ class Plugin(indigo.PluginBase):
 			buildstr = ""
 
 		if "faceAnnotations" in result["responses"][0]:
-			facecounter = 0
 			for face in result["responses"][0]["faceAnnotations"]:
 				facecounter += 1
 
@@ -248,7 +249,21 @@ class Plugin(indigo.PluginBase):
 
 		for trigger in indigo.triggers.iter("self"):
 			eventID = trigger.pluginTypeId[5:].strip()
-			eventType = self.EVENTS[eventID]["eventType"]
+
+			self.logger.debug("size of self.EVENTS: " + str(len(self.EVENTS)) + " , eventID: " + eventID)
+			if int(eventID) <= len(self.EVENTS):
+				eventType = self.EVENTS[eventID]["eventType"]
+			else:
+				self.logger.error("Trigger '" + trigger.name + "'' is configured for a disabled Google Vision event, skipping...")
+				continue
+
+			if not self.EVENTS[eventID]["enableDisable"]:
+				self.logger.error("Trigger '" + trigger.name + "'' is configured for a disabled Google Vision event, skipping...")
+				continue
+
+			if not pluginAction.props["event" + eventID]:
+				self.logger.debug("Trigger '" + trigger.name + "' is not applicable for event " + eventID + ", skipping...")
+				continue	
 
 			self.logger.debug("Evaluating trigger '" + trigger.name + "' (eventID: " + eventID + ", eventType: " + eventType + ")")
 
@@ -262,8 +277,11 @@ class Plugin(indigo.PluginBase):
 							break
 
 			elif eventType == "Face":
-				if "faceAnnotations" in result["responses"][0]:
-					facecounter = 0
+				if facecounter == 0 and self.EVENTS[eventID]["noFace"]:
+					indigo.trigger.execute(trigger)
+				elif facecounter == 0:
+					continue
+				else:
 					for face in result["responses"][0]["faceAnnotations"]:
 						if face["detectionConfidence"] >= float(self.EVENTS[eventID]["txtFaceScore"]):
 							indigo.trigger.execute(trigger)
@@ -272,19 +290,24 @@ class Plugin(indigo.PluginBase):
 			elif eventType == "Label":
 				foundLabel = False
 				foundNotLabel = False
+				self.logger.debug("Looking for labels: " + self.EVENTS[eventID]["txtLabel"] + "; and not for labels:" + self.EVENTS[eventID]["txtNotLabel"])
 
 				if "labelAnnotations" in result["responses"][0]:
 					for lbl in result["responses"][0]["labelAnnotations"]:
-						for lblSearch in self.EVENTS[eventID]["txtLabel"].split(","):
-							if lblSearch == lbl["description"] and lbl["score"] >= float(self.EVENTS[eventID]["txtLabelScore"]):
-								foundLabel = True
+						if len(self.EVENTS[eventID]["txtLabel"]) > 0:
+							for lblSearch in self.EVENTS[eventID]["txtLabel"].split(","):
+								if lblSearch == lbl["description"] and lbl["score"] >= float(self.EVENTS[eventID]["txtLabelScore"]):
+									self.logger.debug("Found label of interest: " + lblSearch)
+									foundLabel = True
 
-						for lblNotSearch in self.EVENTS[eventID]["txtNotLabel"].split(","):
-							if lblNotSearch == lbl["description"] and lbl["score"] >= float(self.EVENTS[eventID]["txtLabelScore"]):
-								foundNotLabel = True
-								break
+						if len(self.EVENTS[eventID]["txtNotLabel"]) > 0:
+							for lblNotSearch in self.EVENTS[eventID]["txtNotLabel"].split(","):
+								if lblNotSearch == lbl["description"] and lbl["score"] >= float(self.EVENTS[eventID]["txtLabelScore"]):
+									self.logger.debug("Found anti-label of interest: " + lblNotSearch)
+									foundNotLabel = True
+									break
 
-				if foundLabal and not foundNotLabel:
+				if (len(self.EVENTS[eventID]["txtLabel"]) > 0 and foundLabel) or (len(self.EVENTS[eventID]["txtNotLabel"]) > 0 and not foundNotLabel):
 					indigo.trigger.execute(trigger)
 
 ########################################
@@ -309,6 +332,7 @@ class Plugin(indigo.PluginBase):
 			valuesDict["txtLabelScore"] = 0
 			valuesDict["txtFaceScore"]	= 0
 			valuesDict["enableDisable"] = False
+			valuesDict["noFace"] = False
 
 			self.EVENTS[self.currentEventN] = copy.deepcopy(emptyEVENT)
 			self.currentEventN ="0"
@@ -324,7 +348,9 @@ class Plugin(indigo.PluginBase):
 		self.EVENTS[self.currentEventN]["txtOCR"] = valuesDict["txtOCR"]
 		self.EVENTS[self.currentEventN]["txtLabel"] = valuesDict["txtLabel"]
 		self.EVENTS[self.currentEventN]["txtNotLabel"] = valuesDict["txtNotLabel"]
+		self.EVENTS[self.currentEventN]["txtLabelScore"] = valuesDict["txtLabelScore"]
 		self.EVENTS[self.currentEventN]["txtFaceScore"] = valuesDict["txtFaceScore"]
+		self.EVENTS[self.currentEventN]["noFace"] = valuesDict["noFace"]
 		self.EVENTS[self.currentEventN]["enableDisable"] = valuesDict["enableDisable"]
 
 		valuesDict["EVENTS"] = json.dumps(self.EVENTS)
