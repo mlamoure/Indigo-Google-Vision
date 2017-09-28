@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-# -*- coding: utf-8 -*-
 ####################
 
 import indigo
@@ -118,35 +117,11 @@ class Plugin(indigo.PluginBase):
 		return (valuesDict, errorMsgDict)
 
 
-	def sendImageToGoogleForAnnotation(self, image):
-		request = {}
-		if image[:4].lower() == "http":
-			request = {
-					"requests": [
-						{
-							"image": {
-								"source": {
-									"imageUri": image
-								}
-							},
-							"features": [
-								{
-									"type": "FACE_DETECTION",
-									"maxResults": MAX_RESULTS
-								},
-								{
-									"type": "LABEL_DETECTION",
-									"maxResults": MAX_RESULTS
-								},
-								{
-									"type": "TEXT_DETECTION",
-									"maxResults": MAX_RESULTS
-								}
-							]
-						}
-					],
-				}
+	def sendImageToGoogleForAnnotation(self, image, ocr, label, face):
+		request = {"requests": []}
 
+		if image[:4].lower() == "http":
+			request["requests"].append({"image": {"source": {"imageUri": image}}})
 		else:
 			try:
 				with io.open(image, 'rb') as image_file:
@@ -155,29 +130,69 @@ class Plugin(indigo.PluginBase):
 				self.logger.error("Error opening image to send to Google Vision")
 				return
 
-			request = {
-					"requests": [
-						{
-							"image": {
-								"content": b64encode(content)
-							},
-							"features": [
-								{
-									"type": "FACE_DETECTION",
-									"maxResults": MAX_RESULTS
-								},
-								{
-									"type": "LABEL_DETECTION",
-									"maxResults": MAX_RESULTS
-								},
-								{
-									"type": "TEXT_DETECTION",
-									"maxResults": MAX_RESULTS
-								}
-							]
-						}
-					],
-				}
+			request["requests"].append({"image": {"content": b64encode(content)}})
+
+		request["requests"][0]["features"] = []
+		if ocr:
+			request["requests"][0]["features"].append({"type": "TEXT_DETECTION","maxResults": MAX_RESULTS})
+
+		if label:
+			request["requests"][0]["features"].append({"type": "LABEL_DETECTION","maxResults": MAX_RESULTS})
+
+		if face:
+			request["requests"][0]["features"].append({"type": "FACE_DETECTION","maxResults": MAX_RESULTS})
+
+		self.logger.debug(json.dumps(request))
+
+			# request = {
+			# 		"requests": [
+			# 			{
+			# 				"image": {
+			# 					"source": {
+			# 						"imageUri": image
+			# 					}
+			# 				},
+			# 				"features": [
+			# 					{
+			# 						"type": "FACE_DETECTION",
+			# 						"maxResults": MAX_RESULTS
+			# 					},
+			# 					{
+			# 						"type": "LABEL_DETECTION",
+			# 						"maxResults": MAX_RESULTS
+			# 					},
+			# 					{
+			# 						"type": "TEXT_DETECTION",
+			# 						"maxResults": MAX_RESULTS
+			# 					}
+			# 				]
+			# 			}
+			# 		],
+			# 	}
+
+			# request = {
+			# 		"requests": [
+			# 			{
+			# 				"image": {
+			# 					"content": b64encode(content)
+			# 				},
+			# 				"features": [
+			# 					{
+			# 						"type": "FACE_DETECTION",
+			# 						"maxResults": MAX_RESULTS
+			# 					},
+			# 					{
+			# 						"type": "LABEL_DETECTION",
+			# 						"maxResults": MAX_RESULTS
+			# 					},
+			# 					{
+			# 						"type": "TEXT_DETECTION",
+			# 						"maxResults": MAX_RESULTS
+			# 					}
+			# 				]
+			# 			}
+			# 		],
+			# 	}
 
 		try:
 			response = requests.post(
@@ -203,7 +218,22 @@ class Plugin(indigo.PluginBase):
 			image = indigo.variables[int(pluginAction.props["locationVariable"])].value
 
 		indigo.server.log("sending " + image + " to Google Vision API")
-		result = self.sendImageToGoogleForAnnotation(image)
+
+		processOCR = False
+		processLabel = False
+		processFace = False
+
+		for i in self.EVENTS:
+			evnt = self.EVENTS[i]
+			if pluginAction.props["event" + str(i)]:
+				if evnt["eventType"] == "OCR":
+					processOCR = True
+				elif evnt["eventType"] == "Face":
+					processFace = True
+				elif evnt["eventType"] == "Label":
+					processLabel = True
+ 
+		result = self.sendImageToGoogleForAnnotation(image, processOCR, processLabel, processFace)
 
 		self.logger.debug(json.dumps(result))
 

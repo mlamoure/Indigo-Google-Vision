@@ -6,8 +6,8 @@
 		<ConfigUI>
 			<Field id="locationOption" type="menu" defaultValue="static" tooltip="" default="static"> <Label>Where to get the image location:</Label>
 					<List>
-						<Option value="variable">Indigo Variable</Option>
-						<Option value="static">Static local hard drive location</Option>
+						<Option value="variable">Indigo Variable (supports both HTTP or local filesystem)</Option>
+						<Option value="static">Type in static location (supports both HTTP or local filesystem)</Option>
 					</List>
 			</Field>
 
@@ -17,7 +17,7 @@
 			</Field>
 
 			<Field id="location" type="textfield" defaultValue="" visibleBindingId="locationOption" visibleBindingValue="static">
-				<Label>Image (can be local filesystem or http):</Label>
+				<Label>Image (can be local full path filesystem or http):</Label>
 			</Field>
 
 		<Field id="infoLabel8" type="label"><Label>---  Applicable Events  ---</Label></Field>
