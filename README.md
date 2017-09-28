@@ -1,4 +1,4 @@
-Indigo (http://www.indigodomo.com) plugin for Google Vision
+Indigo (http://www.indigodomo.com) plugin for Google Vision, allowing home automation integration with the Google Vision API results.
 
 # Requirements #
 A Google Cloud Account with access to the Vision API
@@ -9,7 +9,7 @@ In order to make the plugin usefeul to you, you'll need some kind of web-enabled
 Events:
 * Face Detection - Looks for faces in the image. You can configure the level of certainty that Google returns back to the plugin. Also supported is a flag to look for "no faces detected". Google's API's also support things like the likelihood that the face is showing joy, anger, sorrow, etc. I have not implemented those.
 
-* Label (Object) Detection - Looks for objects in photos. Easiest way to understand Google's dictionary is to use debugging and send your own image a few times to the service. You'll see the labels that Google uses for things like a car, automobile, etc.
+* Label (Object) Detection - Looks for objects in photos. Easiest way to understand Google's dictionary is test with your own images and see what results typically come back.  Typical use cases is to detect the presence of a person, automobile, pet.
 
 * OCR - I haven't tested this thoroughly, but the plugin can trigger an event if Google is able to OCR text in a image and you are looking for a particular substring.
 
