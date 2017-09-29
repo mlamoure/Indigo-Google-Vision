@@ -149,7 +149,7 @@ class Plugin(indigo.PluginBase):
 		if logo:
 			request["requests"][0]["features"].append({"type": "LOGO_DETECTION","maxResults": MAX_RESULTS})
 
-		self.logger.debug(json.dumps(request))
+#		self.logger.debug(json.dumps(request))
 
 		try:
 			response = requests.post(
@@ -296,19 +296,20 @@ class Plugin(indigo.PluginBase):
 			elif eventType == "Label":
 				foundLabel = False
 				foundNotLabel = False
-				self.logger.debug("Looking for labels: " + self.EVENTS[eventID]["txtLabel"] + "; and not for labels:" + self.EVENTS[eventID]["txtNotLabel"])
+				self.logger.debug("Trigger '" + trigger.name + "' Looking for labels: " + self.EVENTS[eventID]["txtLabel"] + "; and not for labels:" + self.EVENTS[eventID]["txtNotLabel"])
 
 				if "labelAnnotations" in result["responses"][0]:
 					for lbl in result["responses"][0]["labelAnnotations"]:
 						if len(self.EVENTS[eventID]["txtLabel"]) > 0:
-							for lblSearch in self.EVENTS[eventID]["txtLabel"].split(","):
-								if lblSearch == lbl["description"] and lbl["score"] >= float(self.EVENTS[eventID]["txtLabelScore"]):
-									self.logger.debug("Found label of interest: " + lblSearch)
+							for lblSearch in self.EVENTS[eventID]["txtLabel"].replace(" ", "").split(","):
+#								self.logger.debug("Trigger '" + trigger.name + "' Evaluating label " + lblSearch)
+								if lblSearch.lower() == lbl["description"].lower() and lbl["score"] >= float(self.EVENTS[eventID]["txtLabelScore"]):
+									self.logger.debug("Trigger '" + trigger.name + "' Found label of interest: " + lblSearch)
 									foundLabel = True
 
 						if len(self.EVENTS[eventID]["txtNotLabel"]) > 0:
-							for lblNotSearch in self.EVENTS[eventID]["txtNotLabel"].split(","):
-								if lblNotSearch == lbl["description"] and lbl["score"] >= float(self.EVENTS[eventID]["txtLabelScore"]):
+							for lblNotSearch in self.EVENTS[eventID]["txtNotLabel"].replace(" ", "").split(","):
+								if lblNotSearch.lower() == lbl["description"].lower() and lbl["score"] >= float(self.EVENTS[eventID]["txtLabelScore"]):
 									self.logger.debug("Found anti-label of interest: " + lblNotSearch)
 									foundNotLabel = True
 									break
@@ -323,8 +324,8 @@ class Plugin(indigo.PluginBase):
 				if "logoAnnotations" in result["responses"][0]:
 					for logo in result["responses"][0]["logoAnnotations"]:
 						if len(self.EVENTS[eventID]["txtLogo"]) > 0:
-							for logoSearch in self.EVENTS[eventID]["txtLogo"].split(","):
-								if logoSearch == logo["description"] and logo["score"] >= float(self.EVENTS[eventID]["txtLogoScore"]):
+							for logoSearch in self.EVENTS[eventID]["txtLogo"].replace(" ", "").split(","):
+								if logoSearch.lower() == logo["description"].lower() and logo["score"] >= float(self.EVENTS[eventID]["txtLogoScore"]):
 									self.logger.debug("Found logo of interest: " + logoSearch)
 									foundLogo = True
 
