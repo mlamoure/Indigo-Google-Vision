@@ -25,9 +25,11 @@ emptyEVENT = {
 	"eventType": "OCR",
 	"txtOCR" : "",
 	"txtLabel" : "",
+	"txtLogo" : "",
 	"txtNotLabel": "",
-	"txtLabelScore" : "90", 
-	"txtFaceScore" : "90",
+	"txtLabelScore" : ".9",
+	"txtLogoScore" : ".9",
+	"txtFaceScore" : ".9",
 	"noFace" : "0",
 	"enableDisable" : "0"
 }
@@ -43,7 +45,7 @@ class Plugin(indigo.PluginBase):
 		self.updater.checkForUpdate(str(self.pluginVersion))
 		self.lastUpdateCheck = datetime.datetime.now()
 		self.pollingInterval = 60
-		self.APIKey = pluginPrefs["txtAPIKey"]
+		self.APIKey = pluginPrefs.get("txtAPIKey", None)
 
 		self.currentEventN = "0"
 
@@ -96,9 +98,11 @@ class Plugin(indigo.PluginBase):
 		valuesDict["eventType"] = str(self.EVENTS[self.currentEventN]["eventType"])
 		valuesDict["txtOCR"] = str(self.EVENTS[self.currentEventN]["txtOCR"])
 		valuesDict["txtLabel"] = str(self.EVENTS[self.currentEventN]["txtLabel"])
+		valuesDict["txtLogo"] = str(self.EVENTS[self.currentEventN]["txtLogo"])
 		valuesDict["txtNotLabel"] = str(self.EVENTS[self.currentEventN]["txtNotLabel"])
 		valuesDict["txtLabelScore"] = str(self.EVENTS[self.currentEventN]["txtLabelScore"])
 		valuesDict["txtFaceScore"]	= str(self.EVENTS[self.currentEventN]["txtFaceScore"])
+		valuesDict["txtLogoScore"]	= str(self.EVENTS[self.currentEventN]["txtLogoScore"])
 		valuesDict["noFace"] = self.EVENTS[self.currentEventN]["noFace"]
 		valuesDict["enableDisable"] = self.EVENTS[self.currentEventN]["enableDisable"]
 
@@ -117,7 +121,7 @@ class Plugin(indigo.PluginBase):
 		return (valuesDict, errorMsgDict)
 
 
-	def sendImageToGoogleForAnnotation(self, image, ocr, label, face):
+	def sendImageToGoogleForAnnotation(self, image, ocr, label, face, logo):
 		request = {"requests": []}
 
 		if image[:4].lower() == "http":
@@ -142,57 +146,10 @@ class Plugin(indigo.PluginBase):
 		if face:
 			request["requests"][0]["features"].append({"type": "FACE_DETECTION","maxResults": MAX_RESULTS})
 
+		if logo:
+			request["requests"][0]["features"].append({"type": "LOGO_DETECTION","maxResults": MAX_RESULTS})
+
 		self.logger.debug(json.dumps(request))
-
-			# request = {
-			# 		"requests": [
-			# 			{
-			# 				"image": {
-			# 					"source": {
-			# 						"imageUri": image
-			# 					}
-			# 				},
-			# 				"features": [
-			# 					{
-			# 						"type": "FACE_DETECTION",
-			# 						"maxResults": MAX_RESULTS
-			# 					},
-			# 					{
-			# 						"type": "LABEL_DETECTION",
-			# 						"maxResults": MAX_RESULTS
-			# 					},
-			# 					{
-			# 						"type": "TEXT_DETECTION",
-			# 						"maxResults": MAX_RESULTS
-			# 					}
-			# 				]
-			# 			}
-			# 		],
-			# 	}
-
-			# request = {
-			# 		"requests": [
-			# 			{
-			# 				"image": {
-			# 					"content": b64encode(content)
-			# 				},
-			# 				"features": [
-			# 					{
-			# 						"type": "FACE_DETECTION",
-			# 						"maxResults": MAX_RESULTS
-			# 					},
-			# 					{
-			# 						"type": "LABEL_DETECTION",
-			# 						"maxResults": MAX_RESULTS
-			# 					},
-			# 					{
-			# 						"type": "TEXT_DETECTION",
-			# 						"maxResults": MAX_RESULTS
-			# 					}
-			# 				]
-			# 			}
-			# 		],
-			# 	}
 
 		try:
 			response = requests.post(
@@ -202,12 +159,12 @@ class Plugin(indigo.PluginBase):
 				},
 				data=json.dumps(request)
 			)
-			print('Response HTTP Status Code: {status_code}'.format(
+			self.logger.debug('Response HTTP Status Code: {status_code}'.format(
 				status_code=response.status_code))
-			print('Response HTTP Response Body: {content}'.format(
+			self.logger.debug('Response HTTP Response Body: {content}'.format(
 				content=response.content))
 		except requests.exceptions.RequestException:
-			print('HTTP Request failed')
+			self.logger.error('HTTP Request failed')
 
 		return response.json()
 
@@ -222,6 +179,7 @@ class Plugin(indigo.PluginBase):
 		processOCR = False
 		processLabel = False
 		processFace = False
+		processLogo = False
 
 		for i in self.EVENTS:
 			evnt = self.EVENTS[i]
@@ -232,25 +190,30 @@ class Plugin(indigo.PluginBase):
 					processFace = True
 				elif evnt["eventType"] == "Label":
 					processLabel = True
+				elif evnt["eventType"] == "Logo":
+					processLogo = True
  
-		result = self.sendImageToGoogleForAnnotation(image, processOCR, processLabel, processFace)
+		result = self.sendImageToGoogleForAnnotation(image, processOCR, processLabel, processFace, processLogo)
 
 		self.logger.debug(json.dumps(result))
 
 		buildstr = ""
 		facecounter = 0
+		resultsFound = False
 
 		if "labelAnnotations" in result["responses"][0]:
+			resultsFound = True
 			for lbl in result["responses"][0]["labelAnnotations"]:
 				buildstr += lbl["description"] + " (score:" + str(lbl["score"]) +"), "
 
-		indigo.server.log("Label Results: " + buildstr[:-2])
-		buildstr = ""
+			indigo.server.log("Label Results: " + buildstr[:-2])
+			buildstr = ""
 
 		if "textAnnotations" in result["responses"][0]:
+			resultsFound = True
 			for ocr in result["responses"][0]["textAnnotations"]:
 				if "locale" in ocr:
-					buildstr += ocr["description"].replace('\n','') + " (language:" + ocr["locale"] +"), "
+					buildstr += ocr["description"].replace('\n','') + " (language:" + ocr["locale"] + "), "
 				else:
 					buildstr += ocr["description"].replace('\n','') + ", "
 
@@ -258,6 +221,7 @@ class Plugin(indigo.PluginBase):
 			buildstr = ""
 
 		if "faceAnnotations" in result["responses"][0]:
+			resultsFound = True
 			for face in result["responses"][0]["faceAnnotations"]:
 				facecounter += 1
 
@@ -271,16 +235,28 @@ class Plugin(indigo.PluginBase):
 				buildstr += "blurredLikelihood: " + str(face["blurredLikelihood"]) + ", "
 				buildstr += "headwearLikelihood: " + str(face["headwearLikelihood"]) + "; "
 
-
 			buildstr = "Found a total of " + str(facecounter) + " face(s).  " + buildstr
 			indigo.server.log("Face Results: " + buildstr[:-2])
 			buildstr = ""
 
+		if "logoAnnotations" in result["responses"][0]:
+			resultsFound = True
+			for logo in result["responses"][0]["logoAnnotations"]:
+				if "locale" in logo:
+					buildstr += logo["description"] + " (score:" + str(logo["score"]) + ", language: " + logo["locale"] + "), "
+				else:
+					buildstr += logo["description"] + " (score:" + str(logo["score"]) + "), "
+
+			indigo.server.log("Logo Results: " + buildstr[:-2])
+			buildstr = ""
+
+		if not resultsFound:
+			indigo.server.log("No results found in image.")
 
 		for trigger in indigo.triggers.iter("self"):
 			eventID = trigger.pluginTypeId[5:].strip()
 
-			self.logger.debug("size of self.EVENTS: " + str(len(self.EVENTS)) + " , eventID: " + eventID)
+#			self.logger.debug("size of self.EVENTS: " + str(len(self.EVENTS)) + " , eventID: " + eventID)
 			if int(eventID) <= len(self.EVENTS):
 				eventType = self.EVENTS[eventID]["eventType"]
 			else:
@@ -340,6 +316,21 @@ class Plugin(indigo.PluginBase):
 				if (len(self.EVENTS[eventID]["txtLabel"]) > 0 and foundLabel) or (len(self.EVENTS[eventID]["txtNotLabel"]) > 0 and not foundNotLabel):
 					indigo.trigger.execute(trigger)
 
+			elif eventType == "Logo":
+				foundLogo = False
+				self.logger.debug("Looking for logos: " + self.EVENTS[eventID]["txtLogo"])
+
+				if "logoAnnotations" in result["responses"][0]:
+					for logo in result["responses"][0]["logoAnnotations"]:
+						if len(self.EVENTS[eventID]["txtLogo"]) > 0:
+							for logoSearch in self.EVENTS[eventID]["txtLogo"].split(","):
+								if logoSearch == logo["description"] and logo["score"] >= float(self.EVENTS[eventID]["txtLogoScore"]):
+									self.logger.debug("Found logo of interest: " + logoSearch)
+									foundLogo = True
+
+				if foundLogo:
+					indigo.trigger.execute(trigger)
+
 ########################################
 	def buttonConfirmDevicesCALLBACK(self, valuesDict,typeId=""):
 		errorDict=indigo.Dict()
@@ -358,9 +349,11 @@ class Plugin(indigo.PluginBase):
 			valuesDict["eventType"] = "OCR"
 			valuesDict["txtOCR"] = ""
 			valuesDict["txtLabel"] = ""
+			valuesDict["txtLogo"] = ""
 			valuesDict["txtNotLabel"] = ""
-			valuesDict["txtLabelScore"] = 0
-			valuesDict["txtFaceScore"]	= 0
+			valuesDict["txtLabelScore"] = .90
+			valuesDict["txtLogoScore"] = .90
+			valuesDict["txtFaceScore"]	= .90
 			valuesDict["enableDisable"] = False
 			valuesDict["noFace"] = False
 
@@ -377,8 +370,10 @@ class Plugin(indigo.PluginBase):
 		self.EVENTS[self.currentEventN]["eventType"] = valuesDict["eventType"]
 		self.EVENTS[self.currentEventN]["txtOCR"] = valuesDict["txtOCR"]
 		self.EVENTS[self.currentEventN]["txtLabel"] = valuesDict["txtLabel"]
+		self.EVENTS[self.currentEventN]["txtLogo"] = valuesDict["txtLogo"]
 		self.EVENTS[self.currentEventN]["txtNotLabel"] = valuesDict["txtNotLabel"]
 		self.EVENTS[self.currentEventN]["txtLabelScore"] = valuesDict["txtLabelScore"]
+		self.EVENTS[self.currentEventN]["txtLogoScore"] = valuesDict["txtLogoScore"]
 		self.EVENTS[self.currentEventN]["txtFaceScore"] = valuesDict["txtFaceScore"]
 		self.EVENTS[self.currentEventN]["noFace"] = valuesDict["noFace"]
 		self.EVENTS[self.currentEventN]["enableDisable"] = valuesDict["enableDisable"]

@@ -23,11 +23,14 @@
 		</Field>
 
 
+		<Field id="infoLabel1" alignText="right" type="label"><Label>---  Make sure you scroll down on this screen and press the CONFIRM button before closing the dialog ---</Label></Field>
+
 		<Field  id="eventType" type="menu" defaultValue="OCR">
 				<List>
 					<Option value="OCR">OCR</Option>
 					<Option value="Face">Face Detection</Option>
 					<Option value="Label">Label (Object Detection)</Option>
+					<Option value="Logo">Logo Detection</Option>
 				</List>
 			<Label>Event Type:</Label>
 		</Field>
@@ -42,6 +45,11 @@
 			<Label>Label Description Contains (separate multiple labels by comma which will be used in a OR condition for the event):</Label>
 		</Field>
 
+		<Field id="txtLogo" visibleBindingId="eventType" visibleBindingValue="Logo"
+				type="textfield">
+			<Label>Logo Description Contains (separate multiple logos by comma which will be used in a OR condition for the event):</Label>
+		</Field>
+
 		<Field id="txtNotLabel" visibleBindingId="eventType" visibleBindingValue="Label"
 				type="textfield">
 			<Label>Label Description DOES NOT Contain (separate multiple labels by comma which will be used in a OR condition for the event):</Label>
@@ -49,7 +57,12 @@
 
 		<Field id="txtLabelScore" visibleBindingId="eventType" visibleBindingValue="Label"
 				type="textfield">
-			<Label>Minimum Score (between 0 and 1):</Label>
+			<Label>Minimum Score (value should be a decimal between 0 and 1):</Label>
+		</Field>
+
+		<Field id="txtLogoScore" visibleBindingId="eventType" visibleBindingValue="Logo"
+				type="textfield">
+			<Label>Minimum Score (value should be a decimal between 0 and 1):</Label>
 		</Field>
 
 		<Field id="noFace" type="checkbox" visibleBindingId="eventType" visibleBindingValue="Face">
@@ -59,7 +72,7 @@
 
 		<Field id="txtFaceScore" visibleBindingId="eventType" visibleBindingValue="Face"
 				type="textfield">
-			<Label>Minimum Score (between 0 and 1):</Label>
+			<Label>Minimum Score (value should be a decimal between 0 and 1.):</Label>
 		</Field>
 
 		<Field  id="enableDisable" type="menu" defaultValue="0">
@@ -80,7 +93,7 @@
 			<Label>Save Event: </Label><Title>CONFIRM</Title> 	
 			<CallbackMethod>buttonConfirmDevicesCALLBACK</CallbackMethod>
 		</Field>
-		<Field id="infoLabel8" type="label"><Label>---  Dont forget to click on CONFIRM to save EVENT parameters  ---</Label></Field>
+		<Field id="infoLabel8" alignText="right" type="label"><Label>---  Dont forget to click on CONFIRM to save EVENT parameters  ---</Label></Field>
 
 
 		</ConfigUI>
